@@ -16,7 +16,7 @@ The outcome variable is `classe`, a factor variable with 5 levels. For this data
 - lowering the dumbbell only halfway (Class D)
 - throwing the hips to the front (Class E)
 
-# Data Setes
+## Data Setes
  Dtasetes are avialable on the belove-mentioned links:-
  
  For tarining-
