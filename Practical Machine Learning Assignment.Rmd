@@ -1,0 +1,116 @@
+---
+title: "Practical Machine Learning Assignment"
+author: "Tarun"
+date: "4/20/2021"
+output: html_document
+---
+
+##Introduction
+The goal of this project is to predict the manner in which they did the exercise. This is the “classe” variable in the training set.
+ 
+ # Data Setes
+ Dtasetes are avialable on the belove-mentioned links:-
+ 
+ For tarining-
+ https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+ 
+ For test-
+ https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+ 
+ I am going to use the below-mentioned R- Packages for the EDA, datacleaning and model buildings-
+ 
+ 
+```{r, echo=TRUE}
+ require(knitr)
+ require(caret)
+ require(rpart)
+ require(rpart.plot)
+ require(randomForest)
+ require(caTools)
+ require(Amelia)
+```
+
+
+##Loading Data
+
+```{r, echo=TRUE}
+# file.choose function help to load the data from anywhere in your system
+tr_data <- read.csv(file.choose(),stringsAsFactors = T, header = T )
+ts_data <- read.csv(file.choose(),stringsAsFactors = T, header = T )
+missmap(tr_data) # To check the missing values
+missmap(ts_data)
+dim(tr_data)
+dim(ts_data)
+
+````
+
+
+##Data Cleansing
+
+After checking the datasets, i have found that there are some missing values in both datasets,and some of variables having Nearly Zero Variance. Now we need to
+
+```{r, echo=TRUE}
+nzv <- nearZeroVar(tr_data)
+tr_data <- tr_data[, -nzv]
+ts_data <- ts_data[, -nzv]
+dim(tr_data)
+dim(ts_data)
+
+AllNA <- sapply(tr_data, function(x) mean(is.na(x))) > 0.95 #Removing Variables which are having NA values, Our threshhold is 95%
+tr_data <- tr_data[, AllNA==FALSE]
+dim(tr_data)
+ts_data <- ts_data[, AllNA==FALSE]
+dim(ts_data)
+
+#Removing the first 7 Variables which are Non-Numeric. 
+tr_data <- tr_data[, 8:59]
+ts_data <- ts_data[, 8:59]
+dim(tr_data)
+dim(ts_data)
+colnames(tr_data)
+```
+
+
+##Data Partitioning 
+
+For the cross validation or to check the accuracy of our model we need to divide training dataset further. For this i am foing to use CAtools package.
+
+```{r,echo=T}
+sample = sample.split(tr_data, SplitRatio = .75)
+train_dt = subset(tr_data, sample == TRUE)
+test_dt  = subset(tr_data, sample == FALSE)
+
+```
+
+
+
+## Decision Tree Model
+
+```{r,echo=T}
+set.seed(123)
+fit <- rpart(classe ~ ., data = train_dt, method="class")
+pred <- predict(fit,test_dt,type = "class")
+confusionMatrix(pred,test_dt$classe)
+
+```
+
+As we can see that accuracy lavel of decision tree is 70%,which is not upto the desired level. So we need to check other models to compare the accuracy with this model.
+
+##Random Forest Model
+```{r,echo=T}
+set.seed(123)
+rf_fit <- randomForest(classe ~ ., data = train_dt,mtyr=7)
+rf_pred <- predict(rf_fit,test_dt)
+cnf_rf <- confusionMatrix(rf_pred,test_dt$classe)
+        plot(cnf_rf$table,col =cnf_rf$byClass,color="blue",main=paste("Random Forest-Accuracy=",
+                        round(cnf_rf$overall['Accuracy'], 4)))
+
+```
+
+After checking the Overall Statistics data, the Random Forest model has definitely more accuracy than Decision tree model. Hence we will be selecting Random Forest model for final prediction
+
+```{r,echo=TRUE}
+rf_ts_pred <- predict(rf_fit,ts_data)
+rf_ts_pred
+
+```
