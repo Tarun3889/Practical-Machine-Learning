@@ -28,6 +28,10 @@ The goal of this project is to predict the manner in which they did the exercise
  require(randomForest)
  require(caTools)
  require(Amelia)
+ require(devtools)
+ require(ggcorrplot)
+ require(plotly)
+ require(correlationfunnel)
 ```
 
 
@@ -70,6 +74,48 @@ dim(ts_data)
 colnames(tr_data)
 ```
 
+## EDA
+To check the correlation among the predictors
+
+```{r,echo=T}
+corr <- round(cor(tr_data[,-52]),1)
+plot1 <- ggcorrplot(corr, hc.order = TRUE, type = "lower",
+            outline.col = "white",
+            ggtheme = ggplot2::theme_gray,
+            colors = c("#6D9EC1", "white", "#E46726"))
+ggplotly(plot1)
+
+## Correlation with classe__A
+tr_data %>% binarize(n_bins = 4,thresh_infreq = 0.01) %>%
+         correlate(target = classe__A) %>%
+    plot_correlation_funnel(interactive = T,limits =
+                                    c(-0.5,0.5))
+
+## Correlation with classe__B
+tr_data %>% binarize(n_bins = 4,thresh_infreq = 0.01) %>%
+         correlate(target = classe__B) %>%
+    plot_correlation_funnel(interactive = T,limits =
+                                    c(-0.5,0.5))
+
+## Correlation with classe__C
+tr_data %>% binarize(n_bins = 4,thresh_infreq = 0.01) %>%
+         correlate(target = classe__C) %>%
+    plot_correlation_funnel(interactive = T,limits =
+                                    c(-0.5,0.5))
+
+## Correlation with classe__D
+tr_data %>% binarize(n_bins = 4,thresh_infreq = 0.01) %>%
+         correlate(target = classe__D) %>%
+    plot_correlation_funnel(interactive = T,limits =
+                                    c(-0.5,0.5))
+
+## Correlation with classe__E
+tr_data %>% binarize(n_bins = 4,thresh_infreq = 0.01) %>%
+         correlate(target = classe__E) %>%
+    plot_correlation_funnel(interactive = T,limits =
+                                    c(-0.5,0.5))
+```
+
 
 ##Data Partitioning 
 
@@ -106,6 +152,7 @@ cnf_rf <- confusionMatrix(rf_pred,test_dt$classe)
                         round(cnf_rf$overall['Accuracy'], 4)))
 
 ```
+
 
 After checking the Overall Statistics data, the Random Forest model has definitely more accuracy than Decision tree model. Hence we will be selecting Random Forest model for final prediction
 
